@@ -50,27 +50,58 @@ class Overboard:
 
         # Testing cases
 
-        self.board_size = 6
-        piece_position = (0, 4)
-        piece_row = np.array([2, 1, 2, 2, 2, 2])
-        piece_row = np.array([2, 1, 0, 0, 2, 2])
-        piece_row = np.array([2, 1, 0, 1, 2, 2])
-        piece_row = np.array([2, 0, 0, 1, 1, 2])
+        self.board_size = 8
+        piece_position = (0, 3)
+        piece_row = np.array([2, 2, 2, 1, 2, 2, 2, 2])
+        # piece_row = np.array([2, 1, 0, 0, 2, 2])
+        # piece_row = np.array([2, 1, 0, 1, 2, 2])
+        # piece_row = np.array([2, 0, 0, 1, 1, 2])
 
         print("\n" * 4)
 
         moves = []
 
-        # Moving right
+        # Moving forward
+        row_copy = piece_row.copy()
+        d = -1
+        print("Initial state", row_copy)
+        print()
+        i = piece_position[1]
+        while i > 0 and i < self.board_size - 1:
+            shifting_piece = row_copy[i]
+            row_copy[i] = self.EMPTY
+            j = i
+            while j > 0 and j < self.board_size - 1:
+                temp = row_copy[j + d]
+                row_copy[j + d] = shifting_piece
+                shifting_piece = temp
+                if shifting_piece == self.EMPTY:
+                    shifting_piece = None
+                    break
+                j += d
+            if shifting_piece == self.turn:
+                break
+            print(row_copy)
+            print("Overboard", shifting_piece)
+            print()
+            if shifting_piece == None and i != piece_position[1]:
+                continue
+            moves.append((piece_position[0], i + 1))
+            i += d
+
+        # Moving backward
         # row_copy = piece_row.copy()
+        # d = -1
         # print("Initial state", row_copy)
         # print()
-        # for i in range(piece_position[1], self.board_size - 1):
+        # i = piece_position[1]
+        # while i > 0 and i < self.board_size - 1:
+        #     print(f"Staring from position {i} moving left one")
         #     shifting_piece = row_copy[i]
         #     row_copy[i] = self.EMPTY
-        #     for j in range(i, self.board_size - 1):
-        #         temp = row_copy[j + 1]
-        #         row_copy[j + 1] = shifting_piece
+        #     for j in reversed(range(1, i + 1)):
+        #         temp = row_copy[j + d]
+        #         row_copy[j + d] = shifting_piece
         #         shifting_piece = temp
         #         if shifting_piece == self.EMPTY:
         #             shifting_piece = None
@@ -82,30 +113,8 @@ class Overboard:
         #     print()
         #     if shifting_piece == None and i != piece_position[1]:
         #         continue
-        #     moves.append((piece_position[0], i + 1))
-
-        row_copy = piece_row.copy()
-        print("Initial state", row_copy)
-        print()
-        for i in reversed(range(1, piece_position[1] + 1)):
-            print(f"Staring from position {i} moving left one")
-            shifting_piece = row_copy[i]
-            row_copy[i] = self.EMPTY
-            for j in reversed(range(1, i + 1)):
-                temp = row_copy[j - 1]
-                row_copy[j - 1] = shifting_piece
-                shifting_piece = temp
-                if shifting_piece == self.EMPTY:
-                    shifting_piece = None
-                    break
-            if shifting_piece == self.turn:
-                break
-            print(row_copy)
-            print("Overboard", shifting_piece)
-            print()
-            if shifting_piece == None and i != piece_position[1]:
-                continue
-            moves.append((piece_position[0], i - 1))
+        #     moves.append((piece_position[0], i + d))
+        #     i += d
 
         print(moves)
 
