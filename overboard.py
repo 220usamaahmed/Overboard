@@ -22,7 +22,7 @@ class Overboard:
         self.turn = self.PLAYER_WHITE
 
     def initialize_randomly(self):
-        assert self.initialized == False
+        self.reset()
         self.initialized = True
 
         piece_count = self.board_size**2 // 2
@@ -34,6 +34,16 @@ class Overboard:
             for c in range(self.board_size):
                 self.board[r, c] = pieces[r * self.board_size + c]
 
+    def initialize(self, board, turn):
+        assert self.board.shape[0] == self.board.shape[1]
+
+        self.reset()
+        self.initialized = True
+
+        self.board = board
+        self.board_size = self.board.shape[0]
+        self.turn = turn
+
     def get_movable_piece_positions(self):
         assert self.initialized == True
 
@@ -42,81 +52,65 @@ class Overboard:
     def get_valid_moves(self, piece_position):
         assert self.board[*piece_position] == self.turn
 
-        piece_row = self.board[piece_position[0], :]
-        piece_col = self.board[:, piece_position[1]]
+        pieces_row = self.board[piece_position[0], :]
+        pieces_col = self.board[:, piece_position[1]]
 
-        # print(piece_row)
-        # print(piece_col)
-
-        # Testing cases
-
-        self.board_size = 8
-        piece_position = (0, 3)
-        piece_row = np.array([2, 2, 2, 1, 2, 2, 2, 2])
-        # piece_row = np.array([2, 1, 0, 0, 2, 2])
-        # piece_row = np.array([2, 1, 0, 1, 2, 2])
-        # piece_row = np.array([2, 0, 0, 1, 1, 2])
-
-        print("\n" * 4)
-
-        moves = []
-
-        # Moving forward
-        row_copy = piece_row.copy()
-        d = -1
-        print("Initial state", row_copy)
         print()
-        i = piece_position[1]
-        while i > 0 and i < self.board_size - 1:
-            shifting_piece = row_copy[i]
-            row_copy[i] = self.EMPTY
+        print()
+
+        left_moves = [
+            (piece_position[0], i)
+            for i in self.get_valid_shifts(pieces_row.copy(), piece_position[1], -1)
+        ]
+        print(f"{left_moves=}")
+        right_moves = [
+            (piece_position[0], i)
+            for i in self.get_valid_shifts(pieces_row.copy(), piece_position[1], +1)
+        ]
+        print(f"{right_moves=}")
+        up_moves = [
+            (i, piece_position[1])
+            for i in self.get_valid_shifts(pieces_col.copy(), piece_position[0], -1)
+        ]
+        print(f"{up_moves=}")
+        down_moves = [
+            (i, piece_position[1])
+            for i in self.get_valid_shifts(pieces_col.copy(), piece_position[0], +1)
+        ]
+        print(f"{down_moves=}")
+
+    def get_valid_shifts(self, pieces, start_index, direction):
+        valid_indices = []
+        print("Initial state", pieces)
+        print()
+        i = start_index
+        while (direction == -1 and i > 0) or (
+            direction == +1 and i < self.board_size - 1
+        ):
+            print(i)
+            shifting_piece = pieces[i]
+            pieces[i] = self.EMPTY
             j = i
-            while j > 0 and j < self.board_size - 1:
-                temp = row_copy[j + d]
-                row_copy[j + d] = shifting_piece
+            while (direction == -1 and j > 0) or (
+                direction == +1 and j < self.board_size - 1
+            ):
+                temp = pieces[j + direction]
+                pieces[j + direction] = shifting_piece
                 shifting_piece = temp
                 if shifting_piece == self.EMPTY:
                     shifting_piece = None
                     break
-                j += d
+                j += direction
             if shifting_piece == self.turn:
                 break
-            print(row_copy)
+            print(pieces)
             print("Overboard", shifting_piece)
             print()
-            if shifting_piece == None and i != piece_position[1]:
+            i += direction
+            if shifting_piece == None and i - direction != start_index:
                 continue
-            moves.append((piece_position[0], i + 1))
-            i += d
-
-        # Moving backward
-        # row_copy = piece_row.copy()
-        # d = -1
-        # print("Initial state", row_copy)
-        # print()
-        # i = piece_position[1]
-        # while i > 0 and i < self.board_size - 1:
-        #     print(f"Staring from position {i} moving left one")
-        #     shifting_piece = row_copy[i]
-        #     row_copy[i] = self.EMPTY
-        #     for j in reversed(range(1, i + 1)):
-        #         temp = row_copy[j + d]
-        #         row_copy[j + d] = shifting_piece
-        #         shifting_piece = temp
-        #         if shifting_piece == self.EMPTY:
-        #             shifting_piece = None
-        #             break
-        #     if shifting_piece == self.turn:
-        #         break
-        #     print(row_copy)
-        #     print("Overboard", shifting_piece)
-        #     print()
-        #     if shifting_piece == None and i != piece_position[1]:
-        #         continue
-        #     moves.append((piece_position[0], i + d))
-        #     i += d
-
-        print(moves)
+            valid_indices.append(i)
+        return valid_indices
 
     def display_board(self):
         assert self.initialized == True
@@ -129,9 +123,18 @@ if __name__ == "__main__":
     random.seed(1)
 
     overboard = Overboard(board_size=4)
-    overboard.initialize_randomly()
+    board = np.array(
+        [
+            [1, 0, 0, 2, 0, 2, 2, 2],
+            [0, 0, 0, 2, 0, 0, 0, 0],
+            [0, 0, 0, 2, 0, 0, 0, 0],
+            [2, 2, 2, 1, 2, 2, 2, 2],
+            [0, 0, 0, 2, 0, 0, 0, 0],
+            [0, 0, 0, 2, 0, 0, 0, 0],
+            [0, 0, 0, 2, 0, 0, 0, 0],
+            [2, 2, 2, 2, 0, 0, 0, 1],
+        ]
+    )
+    overboard.initialize(board, Overboard.PLAYER_WHITE)
     overboard.display_board()
-
-    movable_pieces = overboard.get_movable_piece_positions()
-    # print(movable_pieces)
-    overboard.get_valid_moves(movable_pieces[0])
+    overboard.get_valid_moves((7, 7))
