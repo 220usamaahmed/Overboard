@@ -4,14 +4,26 @@ import os
 import shutil
 import curses
 import random
+from overboard import Overboard
 
 
 BLOCK_WIDTH = 7
 BLOCK_HEIGHT = 3
 
-RED_ON_RED = 1
-BLUE_ON_BLUE = 2
-RED_ON_WHITE = 3
+BLUE_ON_BLUE = 1
+CYAN_ON_CYAN = 2
+RED_ON_BLUE = 3
+WHITE_ON_BLUE = 4
+RED_ON_CYAN = 5
+WHITE_ON_CYAN = 6
+RED_ON_YELLOW = 7
+WHITE_ON_YELLOW = 8
+
+SPACE = "\u0020"
+HORIZONTAL = f"\u2500"
+VERTICAL = f"\u2502"
+PIECE = "\u25CB"
+SELECTED_PIECE = "\u25CF"
 
 
 @dataclass
@@ -22,33 +34,46 @@ class Char:
 
 def setup_colors():
     curses.start_color()
-    curses.init_pair(RED_ON_RED, curses.COLOR_RED, curses.COLOR_RED)
     curses.init_pair(BLUE_ON_BLUE, curses.COLOR_BLUE, curses.COLOR_BLUE)
-    curses.init_pair(RED_ON_WHITE, curses.COLOR_RED, curses.COLOR_WHITE)
+    curses.init_pair(CYAN_ON_CYAN, curses.COLOR_CYAN, curses.COLOR_CYAN)
+
+    curses.init_pair(RED_ON_BLUE, curses.COLOR_RED, curses.COLOR_BLUE)
+    curses.init_pair(WHITE_ON_BLUE, curses.COLOR_WHITE, curses.COLOR_BLUE)
+
+    curses.init_pair(RED_ON_CYAN, curses.COLOR_RED, curses.COLOR_CYAN)
+    curses.init_pair(WHITE_ON_CYAN, curses.COLOR_WHITE, curses.COLOR_CYAN)
+
+    curses.init_pair(RED_ON_YELLOW, curses.COLOR_RED, curses.COLOR_YELLOW)
+    curses.init_pair(WHITE_ON_YELLOW, curses.COLOR_WHITE, curses.COLOR_YELLOW)
 
 
-def get_block(red) -> List[List[Char]]:
+def get_block(piece, highlighted=False, selected=False) -> List[List[Char]]:
     block = [
         [
-            Char("\u0020", RED_ON_RED if red else BLUE_ON_BLUE)
+            Char(SPACE, BLUE_ON_BLUE if highlighted else CYAN_ON_CYAN)
             for _ in range(BLOCK_WIDTH)
         ]
         for _ in range(BLOCK_HEIGHT)
     ]
 
-    block[BLOCK_HEIGHT // 2][BLOCK_WIDTH // 2] = Char("\u25CB", RED_ON_WHITE)
-    block[BLOCK_HEIGHT // 2][BLOCK_WIDTH // 2 - 1].color = RED_ON_WHITE
-    block[BLOCK_HEIGHT // 2][BLOCK_WIDTH // 2 + 1].color = RED_ON_WHITE
+    piece_char = SELECTED_PIECE if selected else PIECE
+
+    if piece == Overboard.PLAYER_RED:
+        block[BLOCK_HEIGHT // 2][BLOCK_WIDTH // 2] = Char(
+            piece_char, RED_ON_BLUE if highlighted else RED_ON_CYAN
+        )
+    elif piece == Overboard.PLAYER_WHITE:
+        block[BLOCK_HEIGHT // 2][BLOCK_WIDTH // 2] = Char(
+            piece_char, WHITE_ON_BLUE if highlighted else WHITE_ON_CYAN
+        )
 
     return block
 
 
-def draw_board(
-    stdscr, board: List[List[Literal["W", "R"]]], selected_piece: Tuple[int, int]
-):
-    for i in range(5):
-        for j in range(5):
-            block = get_block((i + j) % 2 == 0)
+def draw_board(stdscr, board, cursor, selected_piece):
+    for i in range(board.shape[0]):
+        for j in range(board.shape[0]):
+            block = get_block(board[i, j], (i, j) == cursor, (i, j) == selected_piece)
             for b_i in range(BLOCK_HEIGHT):
                 for b_j in range(BLOCK_WIDTH):
                     block_char = block[b_i][b_j].char
@@ -61,14 +86,50 @@ def draw_board(
                     )
 
 
+SIZE = 8
+selected_piece = None
+cursor = (0, 0)
+message = ""
+overboard = Overboard(board_size=SIZE)
+
+
+def handle_piece_selection(key):
+    global message, cursor, selected_piece
+
+    if key == curses.KEY_UP:
+        cursor = (max(0, cursor[0] - 1), cursor[1])
+    elif key == curses.KEY_DOWN:
+        cursor = (min(SIZE - 1, cursor[0] + 1), cursor[1])
+    elif key == curses.KEY_LEFT:
+        cursor = (cursor[0], max(0, cursor[1] - 1))
+    elif key == curses.KEY_RIGHT:
+        cursor = (cursor[0], min(SIZE - 1, cursor[1] + 1))
+    elif key == ord(" "):
+        if overboard.board[*cursor] == overboard.turn:
+            selected_piece = cursor
+        else:
+            message = "Pick a piece of your color"
+
+
+def handle_slide(key):
+    global selected_piece, cursor
+
+    if key == curses.KEY_UP:
+        cursor = (max(0, cursor[0] - 1), cursor[1])
+    elif key == curses.KEY_DOWN:
+        cursor = (min(SIZE - 1, cursor[0] + 1), cursor[1])
+    elif key == curses.KEY_LEFT:
+        cursor = (cursor[0], max(0, cursor[1] - 1))
+    elif key == curses.KEY_RIGHT:
+        cursor = (cursor[0], min(SIZE - 1, cursor[1] + 1))
+    elif key == ord(" "):
+        selected_piece = None
+
+
 def main(stdscr):
-    SIZE = 8
+    global overboard, selected_piece, cursor
 
-    board: List[List[Literal["R", "W"]]] = [
-        [random.choice(["R", "W"]) for _ in range(SIZE)] for _ in range(SIZE)
-    ]
-
-    selected_piece = (0, 0)
+    overboard.initialize_test_board()
 
     setup_colors()
 
@@ -77,68 +138,30 @@ def main(stdscr):
     stdscr.nodelay(1)
     stdscr.timeout(1000)
 
-    count = 0
+    blit = True
 
     while True:
-        if count == 0:
+        if True or blit:
             stdscr.clear()
-            draw_board(stdscr, board, selected_piece)
+            board = overboard.board
+            if selected_piece is not None:
+                board, valid = overboard.get_preview_board(selected_piece, cursor)
+            draw_board(stdscr, board, cursor, cursor if selected_piece else None)
+            blit = False
 
-        stdscr.addstr(17, 0, str(count))
-        count += 1
-        if count > 10:
-            count = 0
+        stdscr.addstr(8 * BLOCK_HEIGHT + 3, 0, message)
 
         stdscr.refresh()
 
         key = stdscr.getch()
-
-        if key == curses.KEY_UP:
-            selected_piece = (max(0, selected_piece[0] - 1), selected_piece[1])
-        elif key == curses.KEY_DOWN:
-            selected_piece = (min(SIZE - 1, selected_piece[0] + 1), selected_piece[1])
-        elif key == curses.KEY_LEFT:
-            selected_piece = (selected_piece[0], max(0, selected_piece[1] - 1))
-        elif key == curses.KEY_RIGHT:
-            selected_piece = (selected_piece[0], min(SIZE - 1, selected_piece[1] + 1))
-        elif key == ord("q"):
+        if key == ord("q"):
             break
+
+        if selected_piece is None:
+            handle_piece_selection(key)
+        else:
+            handle_slide(key)
 
 
 if __name__ == "__main__":
     curses.wrapper(main)
-
-
-"""
-    RED = "\033[91m"
-    GRAY = "\033[90m"
-    RESET = "\033[0m"
-
-    SPACE = "\u0020"
-    HORIZONTAL = f"{GRAY}\u2500{RESET}"
-    VERTICAL = f"{GRAY}\u2502{RESET}"
-    PIECE = "\u25CB"
-    SELECTED_PIECE = "\u25CF"
-
-    SIZE = len(board)
-    H_SPACING = 3
-
-    terminal_size = shutil.get_terminal_size()
-    board_width = H_SPACING * SIZE + (H_SPACING - 1)
-
-    for row_i in range(SIZE):
-        print(f"{SPACE * H_SPACING}{VERTICAL}" * SIZE)
-
-        for col_i in range(SIZE):
-            print(HORIZONTAL * H_SPACING, end="")
-            piece_char = PIECE if (row_i, col_i) != selected_piece else SELECTED_PIECE
-            if board[row_i][col_i] == "W":
-                print(piece_char, end="")
-            else:
-                print(f"{RED}{piece_char}{RESET}", end="")
-        print(HORIZONTAL * 3)
-
-    print(f"{SPACE * H_SPACING}{VERTICAL}" * SIZE)
-
-    stdscr.refresh()
-"""

@@ -83,7 +83,7 @@ class Overboard:
             )
         ]
 
-        return left_moves, right_moves, up_moves, down_moves
+        return left_moves + right_moves + up_moves + down_moves
 
     def make_move(self, start_position, end_position):
         board, valid = self.get_preview_board(start_position, end_position)
@@ -100,17 +100,17 @@ class Overboard:
 
         if start_position[0] == end_position[0]:
             pieces_row = self.board[start_position[0], :].copy()
-            direction = 1 if end_position[0] > start_position[0] else -1
+            direction = 1 if end_position[1] > start_position[1] else -1
             shifts = self.get_shifts(
                 pieces_row, start_position[1], direction, end_position[1]
             )
             if len(shifts):
                 _, preview, valid = shifts[-1]
+                print("-------", preview)
                 preview_board[start_position[0], :] = preview
         elif start_position[1] == end_position[1]:
-            # Column slide
             pieces_col = self.board[:, start_position[1]].copy()
-            direction = 1 if end_position[1] > start_position[1] else -1
+            direction = 1 if end_position[0] > start_position[0] else -1
             shifts = self.get_shifts(
                 pieces_col, start_position[0], direction, end_position[0]
             )
@@ -124,13 +124,12 @@ class Overboard:
 
     def get_shifts(self, pieces, start_index, direction, end_index=None):
         slides = []
-        print("Initial state", pieces, start_index, end_index)
-        print()
+        # print("Initial state", pieces, start_index, end_index)
+        # print()
         i = start_index
         while (
             (direction == -1 and i > 0) or (direction == +1 and i < self.board_size - 1)
         ) and i != end_index:
-            print("-------", i)
             shifting_piece = pieces[i]
             pieces[i] = self.EMPTY
             j = i
@@ -146,9 +145,9 @@ class Overboard:
                 j += direction
             if shifting_piece == self.turn:
                 break
-            print(pieces)
-            print("Overboard", shifting_piece)
-            print()
+            # print(pieces)
+            # print("Overboard", shifting_piece)
+            # print()
             i += direction
             slides.append(
                 (
@@ -164,6 +163,21 @@ class Overboard:
 
         for r in range(self.board_size):
             print(" ".join(list(map(str, self.board[r]))))
+
+    def initialize_test_board(self):
+        board = np.array(
+            [
+                [1, 0, 0, 2, 0, 2, 2, 2],
+                [0, 0, 0, 2, 0, 0, 0, 0],
+                [0, 0, 0, 2, 0, 0, 0, 0],
+                [2, 2, 2, 1, 2, 2, 2, 2],
+                [0, 0, 0, 2, 0, 0, 0, 0],
+                [0, 0, 0, 2, 0, 0, 0, 0],
+                [0, 0, 0, 2, 0, 0, 0, 0],
+                [2, 2, 2, 2, 0, 0, 0, 1],
+            ]
+        )
+        self.initialize(board, Overboard.PLAYER_WHITE)
 
 
 if __name__ == "__main__":
@@ -183,8 +197,10 @@ if __name__ == "__main__":
         ]
     )
     overboard.initialize(board, Overboard.PLAYER_WHITE)
-    overboard.get_moves((7, 7))
+    moves = overboard.get_moves((3, 3))
+    for i, p, v in moves:
+        print(i, p, v)
     overboard.display_board()
-    preview, valid = overboard.get_preview_board((7, 7), (7, 3))
+    preview, valid = overboard.get_preview_board((3, 3), (3, 6))
     print(preview)
     print(valid)
