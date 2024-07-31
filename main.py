@@ -86,7 +86,7 @@ def draw_board(stdscr, board, cursor, selected_piece):
                     )
 
 
-SIZE = 8
+SIZE = 2
 selected_piece = None
 cursor = (0, 0)
 message = ""
@@ -112,24 +112,35 @@ def handle_piece_selection(key):
 
 
 def handle_slide(key):
-    global selected_piece, cursor
+    global selected_piece, cursor, message
 
-    if key == curses.KEY_UP:
+    assert selected_piece is not None
+
+    if key == curses.KEY_UP and cursor[1] == selected_piece[1]:
         cursor = (max(0, cursor[0] - 1), cursor[1])
-    elif key == curses.KEY_DOWN:
+    elif key == curses.KEY_DOWN and cursor[1] == selected_piece[1]:
         cursor = (min(SIZE - 1, cursor[0] + 1), cursor[1])
-    elif key == curses.KEY_LEFT:
+    elif key == curses.KEY_LEFT and cursor[0] == selected_piece[0]:
         cursor = (cursor[0], max(0, cursor[1] - 1))
-    elif key == curses.KEY_RIGHT:
+    elif key == curses.KEY_RIGHT and cursor[0] == selected_piece[0]:
         cursor = (cursor[0], min(SIZE - 1, cursor[1] + 1))
     elif key == ord(" "):
         selected_piece = None
+    elif key == ord("a"):
+        message = "Here"
+        try:
+            overboard.make_move(selected_piece, cursor)
+            selected_piece = None
+            cursor = (0, 0)
+        except Exception:
+            message = "You can not move your piece here"
 
 
 def main(stdscr):
     global overboard, selected_piece, cursor
 
-    overboard.initialize_test_board()
+    # overboard.initialize_test_board()
+    overboard.initialize_randomly()
 
     setup_colors()
 
@@ -149,7 +160,10 @@ def main(stdscr):
             draw_board(stdscr, board, cursor, cursor if selected_piece else None)
             blit = False
 
-        stdscr.addstr(8 * BLOCK_HEIGHT + 3, 0, message)
+        if winner := overboard.get_winner() is not None:
+            stdscr.addstr(8 * BLOCK_HEIGHT + 3, 0, f"Game won by {winner}")
+        else:
+            stdscr.addstr(8 * BLOCK_HEIGHT + 3, 0, message)
 
         stdscr.refresh()
 

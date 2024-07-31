@@ -49,6 +49,15 @@ class Overboard:
 
         return list(zip(*np.where(self.board == self.turn)))
 
+    def get_winner(self):
+        if not np.any(self.board == self.PLAYER_RED):
+            return self.PLAYER_WHITE
+
+        if not np.any(self.board == self.PLAYER_WHITE):
+            return self.PLAYER_RED
+
+        return None
+
     def get_moves(self, piece_position):
         assert self.board[*piece_position] == self.turn
 
@@ -89,6 +98,9 @@ class Overboard:
         board, valid = self.get_preview_board(start_position, end_position)
         if valid:
             self.board = board
+            self.turn = (
+                self.PLAYER_WHITE if self.turn == self.PLAYER_RED else self.PLAYER_RED
+            )
         else:
             raise Exception("Invalid move")
 
