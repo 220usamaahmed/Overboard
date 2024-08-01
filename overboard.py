@@ -167,6 +167,8 @@ class Overboard:
                     shifting_piece != None or i - direction == start_index,
                 )
             )
+        if end_index is not None and i != end_index:
+            raise Exception("Can not overboard your own piece")
         return slides
 
     def display_board(self):

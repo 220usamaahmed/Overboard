@@ -74,16 +74,22 @@ class GameRunner:
             cursor = (cursor[0], min(board_size - 1, cursor[1] + 1))
         elif key == ord(" "):
             selected_piece = None
+            return
         elif key == ord("a"):
             try:
                 self.overboard.make_move(selected_piece, cursor)
-                selected_piece = None
-                cursor = (0, 0)
+                self.selected_piece = None
+                self.cursor = (0, 0)
             except Exception:
                 self.message = "You can not move your piece here"
+            return
 
-        self.cursor = cursor
-        self.selected_piece = selected_piece
+        try:
+            self.overboard.get_preview_board(selected_piece, cursor)
+            self.cursor = cursor
+            self.selected_piece = selected_piece
+        except Exception:
+            self.message = "Can not overboard your own piece"
 
     def render(self, stdscr):
         self.draw_board(stdscr)
