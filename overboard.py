@@ -118,7 +118,6 @@ class Overboard:
             )
             if len(shifts):
                 _, preview, valid = shifts[-1]
-                print("-------", preview)
                 preview_board[start_position[0], :] = preview
         elif start_position[1] == end_position[1]:
             pieces_col = self.board[:, start_position[1]].copy()
@@ -186,7 +185,7 @@ class Overboard:
                 [0, 0, 0, 2, 0, 0, 0, 0],
                 [0, 0, 0, 2, 0, 0, 0, 0],
                 [0, 0, 0, 2, 0, 0, 0, 0],
-                [2, 2, 2, 2, 0, 0, 0, 1],
+                [2, 2, 2, 2, 0, 1, 0, 1],
             ]
         )
         self.initialize(board, Overboard.PLAYER_WHITE)
@@ -205,14 +204,14 @@ if __name__ == "__main__":
             [0, 0, 0, 2, 0, 0, 0, 0],
             [0, 0, 0, 2, 0, 0, 0, 0],
             [0, 0, 0, 2, 0, 0, 0, 0],
-            [2, 2, 2, 2, 0, 0, 0, 1],
+            [2, 2, 2, 2, 0, 1, 0, 1],
         ]
     )
     overboard.initialize(board, Overboard.PLAYER_WHITE)
-    moves = overboard.get_moves((3, 3))
+    moves = overboard.get_moves((7, 7))
     for i, p, v in moves:
         print(i, p, v)
     overboard.display_board()
-    preview, valid = overboard.get_preview_board((3, 3), (3, 6))
+    preview, valid = overboard.get_preview_board((7, 7), (7, 0))
     print(preview)
     print(valid)
