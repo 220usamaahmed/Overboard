@@ -9,6 +9,7 @@ class Color(Enum):
     RED = auto()
     WHITE = auto()
     YELLOW = auto()
+    GREEN = auto()
 
     @staticmethod
     def get(foreground: "Color", background: "Color"):
@@ -98,8 +99,20 @@ class GameRunner:
             self.overboard.board_size * self.BLOCK_HEIGHT + 2, 0, self.message
         )
 
+        if (winner := self.overboard.get_winner()) is not None:
+            self.message = str(winner)
+            if winner == Overboard.PLAYER_WHITE:
+                self.display_white_wins(stdscr)
+            else:
+                self.display_red_wins(stdscr)
+
     def draw_board(self, stdscr):
+        terminal_rows, terminal_cols = stdscr.getmaxyx()
         board_size = self.overboard.board_size
+
+        starting_c = (terminal_cols - board_size * self.BLOCK_WIDTH) // 2
+        starting_r = (terminal_rows - board_size * self.BLOCK_HEIGHT) // 2
+
         for r in range(board_size):
             for c in range(board_size):
                 block = self.get_block(r, c)
@@ -108,11 +121,60 @@ class GameRunner:
                         block_char = block[b_r][b_c][0]
                         block_color = block[b_r][b_c][1]
                         stdscr.addstr(
-                            r * self.BLOCK_HEIGHT + b_r,
-                            c * self.BLOCK_WIDTH + b_c,
+                            starting_r + r * self.BLOCK_HEIGHT + b_r,
+                            starting_c + c * self.BLOCK_WIDTH + b_c,
                             block_char,
                             curses.color_pair(block_color),
                         )
+
+    def display_white_wins(self, stdscr):
+        banner = r"""
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                                                                             │
+│  ██╗    ██╗██╗  ██╗██╗████████╗███████╗    ██╗    ██╗██╗███╗   ██╗███████╗  │
+│  ██║    ██║██║  ██║██║╚══██╔══╝██╔════╝    ██║    ██║██║████╗  ██║██╔════╝  │
+│  ██║ █╗ ██║███████║██║   ██║   █████╗      ██║ █╗ ██║██║██╔██╗ ██║███████╗  │
+│  ██║███╗██║██╔══██║██║   ██║   ██╔══╝      ██║███╗██║██║██║╚██╗██║╚════██║  │
+│  ╚███╔███╔╝██║  ██║██║   ██║   ███████╗    ╚███╔███╔╝██║██║ ╚████║███████║  │
+│   ╚══╝╚══╝ ╚═╝  ╚═╝╚═╝   ╚═╝   ╚══════╝     ╚══╝╚══╝ ╚═╝╚═╝  ╚═══╝╚══════╝  │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+        """
+        self.display_banner(stdscr, banner, Color.get(Color.WHITE, Color.GREEN))
+
+    def display_red_wins(self, stdscr):
+        banner = f"""
+┌───────────────────────────────────────────────────────────────┐
+│                                                               │
+│  ██████╗ ███████╗██████╗     ██╗    ██╗██╗███╗   ██╗███████╗  │
+│  ██╔══██╗██╔════╝██╔══██╗    ██║    ██║██║████╗  ██║██╔════╝  │
+│  ██████╔╝█████╗  ██║  ██║    ██║ █╗ ██║██║██╔██╗ ██║███████╗  │
+│  ██╔══██╗██╔══╝  ██║  ██║    ██║███╗██║██║██║╚██╗██║╚════██║  │
+│  ██║  ██║███████╗██████╔╝    ╚███╔███╔╝██║██║ ╚████║███████║  │
+│  ╚═╝  ╚═╝╚══════╝╚═════╝      ╚══╝╚══╝ ╚═╝╚═╝  ╚═══╝╚══════╝  │
+│                                                               │
+└───────────────────────────────────────────────────────────────┘
+        """
+        self.display_banner(stdscr, banner, Color.get(Color.WHITE, Color.GREEN))
+
+    def display_banner(self, stdscr, banner, color):
+        padding = 3
+        terminal_rows, terminal_cols = stdscr.getmaxyx()
+
+        banner = banner.split("\n")
+        widest_line = max(map(len, banner))
+        line_width = widest_line + 2 * padding
+
+        starting_x = (terminal_cols - line_width) // 2
+        starting_y = (terminal_rows - len(banner)) // 2
+
+        for i, line in enumerate(banner):
+            stdscr.addstr(
+                starting_y + i,
+                starting_x,
+                f"{' ' * padding}{line}{' ' * (line_width - len(line) - padding)}",
+                curses.color_pair(color),
+            )
 
     def get_block(self, row, col):
         board = self.overboard.board
@@ -192,6 +254,11 @@ def setup_curses_colors():
     )
     curses.init_pair(
         Color.get(Color.WHITE, Color.YELLOW), curses.COLOR_WHITE, curses.COLOR_YELLOW
+    )
+
+    # Green Background
+    curses.init_pair(
+        Color.get(Color.WHITE, Color.GREEN), curses.COLOR_WHITE, curses.COLOR_GREEN
     )
 
 

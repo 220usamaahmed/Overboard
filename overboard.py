@@ -190,6 +190,18 @@ class Overboard:
                 [2, 2, 2, 2, 0, 1, 0, 1],
             ]
         )
+        board = np.array(
+            [
+                [0, 0, 0, 2, 0, 0, 0, 0],
+                [0, 0, 0, 2, 0, 0, 0, 0],
+                [0, 0, 0, 2, 0, 0, 0, 0],
+                [2, 2, 2, 1, 0, 0, 0, 0],
+                [0, 0, 0, 2, 0, 0, 0, 0],
+                [0, 0, 0, 2, 0, 0, 0, 0],
+                [0, 0, 0, 2, 0, 0, 0, 0],
+                [2, 2, 2, 2, 0, 0, 0, 0],
+            ]
+        )
         self.initialize(board, Overboard.PLAYER_WHITE)
 
 
@@ -197,23 +209,12 @@ if __name__ == "__main__":
     random.seed(1)
 
     overboard = Overboard(board_size=4)
-    board = np.array(
-        [
-            [1, 0, 0, 2, 0, 2, 2, 2],
-            [0, 0, 0, 2, 0, 0, 0, 0],
-            [0, 0, 0, 2, 0, 0, 0, 0],
-            [2, 2, 2, 1, 2, 2, 2, 2],
-            [0, 0, 0, 2, 0, 0, 0, 0],
-            [0, 0, 0, 2, 0, 0, 0, 0],
-            [0, 0, 0, 2, 0, 0, 0, 0],
-            [2, 2, 2, 2, 0, 1, 0, 1],
-        ]
-    )
-    overboard.initialize(board, Overboard.PLAYER_WHITE)
-    moves = overboard.get_moves((7, 7))
-    for i, p, v in moves:
-        print(i, p, v)
-    overboard.display_board()
-    preview, valid = overboard.get_preview_board((7, 7), (7, 0))
-    print(preview)
-    print(valid)
+    overboard.initialize_test_board()
+    print(overboard.get_winner())
+    # moves = overboard.get_moves((7, 7))
+    # for i, p, v in moves:
+    #     print(i, p, v)
+    # overboard.display_board()
+    # preview, valid = overboard.get_preview_board((7, 7), (7, 0))
+    # print(preview)
+    # print(valid)
