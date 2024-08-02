@@ -28,12 +28,11 @@ class GameRunner:
 
     def __init__(self, board_size=8):
         self.overboard = Overboard(board_size)
-        # self.overboard.initialize_randomly()
-        self.overboard.initialize_test_board()
+        self.overboard.initialize_randomly()
+        # self.overboard.initialize_test_board()
 
         self.cursor = (0, 0)
         self.selected_piece = None
-        self.message = ""
 
     def handle_key_press(self, key):
         if self.selected_piece == None:
@@ -55,8 +54,6 @@ class GameRunner:
         elif key == ord(" "):
             if self.overboard.board[*self.cursor] == self.overboard.turn:
                 self.selected_piece = self.cursor
-            else:
-                self.message = "Pick a piece of your color"
 
     def handle_slide(self, key):
         assert self.selected_piece is not None
@@ -74,15 +71,15 @@ class GameRunner:
         elif key == curses.KEY_RIGHT and cursor[0] == selected_piece[0]:
             cursor = (cursor[0], min(board_size - 1, cursor[1] + 1))
         elif key == ord(" "):
-            selected_piece = None
+            self.selected_piece = None
             return
-        elif key == ord("a"):
+        elif key in [curses.KEY_ENTER, ord("\n")]:
             try:
                 self.overboard.make_move(selected_piece, cursor)
                 self.selected_piece = None
                 self.cursor = (0, 0)
             except Exception:
-                self.message = "You can not move your piece here"
+                pass
             return
 
         try:
@@ -90,17 +87,12 @@ class GameRunner:
             self.cursor = cursor
             self.selected_piece = selected_piece
         except Exception:
-            self.message = "Can not overboard your own piece"
+            ...
 
     def render(self, stdscr):
         self.draw_board(stdscr)
 
-        stdscr.addstr(
-            self.overboard.board_size * self.BLOCK_HEIGHT + 2, 0, self.message
-        )
-
         if (winner := self.overboard.get_winner()) is not None:
-            self.message = str(winner)
             if winner == Overboard.PLAYER_WHITE:
                 self.display_white_wins(stdscr)
             else:
@@ -112,6 +104,8 @@ class GameRunner:
 
         starting_c = (terminal_cols - board_size * self.BLOCK_WIDTH) // 2
         starting_r = (terminal_rows - board_size * self.BLOCK_HEIGHT) // 2
+
+        self.display_turn_indicators(stdscr)
 
         for r in range(board_size):
             for c in range(board_size):
@@ -126,6 +120,36 @@ class GameRunner:
                             block_char,
                             curses.color_pair(block_color),
                         )
+
+    def display_turn_indicators(self, stdscr):
+        terminal_rows, terminal_cols = stdscr.getmaxyx()
+
+        white = "WHITE"
+        red = "RED"
+
+        board_width = self.BLOCK_WIDTH * self.overboard.board_size
+        board_height = self.BLOCK_HEIGHT * self.overboard.board_size
+        starting_x = (terminal_cols - board_width) // 2
+
+        turn_color = curses.color_pair(Color.get(Color.BLUE, Color.WHITE))
+        non_turn_color = curses.color_pair(Color.get(Color.WHITE, Color.BLUE))
+
+        stdscr.addstr(
+            (terminal_rows - board_height) // 2 - 2,
+            starting_x,
+            f" {white}{' ' * (board_width - len(white) - 1)}",
+            turn_color
+            if self.overboard.turn == Overboard.PLAYER_WHITE
+            else non_turn_color,
+        )
+        stdscr.addstr(
+            (terminal_rows - board_height) // 2 + board_height + 1,
+            starting_x,
+            f" {red}{' ' * (board_width - len(red) - 1)}",
+            turn_color
+            if self.overboard.turn == Overboard.PLAYER_RED
+            else non_turn_color,
+        )
 
     def display_white_wins(self, stdscr):
         banner = r"""
@@ -261,14 +285,19 @@ def setup_curses_colors():
         Color.get(Color.WHITE, Color.GREEN), curses.COLOR_WHITE, curses.COLOR_GREEN
     )
 
+    # White Background
+    curses.init_pair(
+        Color.get(Color.BLUE, Color.WHITE), curses.COLOR_BLUE, curses.COLOR_WHITE
+    )
+
 
 def game_loop(stdscr):
     setup_curses_colors()
 
     game_runner = GameRunner()
 
-    stdscr.nodelay(1)
-    stdscr.timeout(1000)
+    stdscr.nodelay(False)
+    curses.curs_set(0)
 
     while True:
         stdscr.clear()
