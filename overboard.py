@@ -135,8 +135,6 @@ class Overboard:
 
     def get_shifts(self, pieces, start_index, direction, end_index=None):
         slides = []
-        # print("Initial state", pieces, start_index, end_index)
-        # print()
         i = start_index
         while (
             (direction == -1 and i > 0) or (direction == +1 and i < self.board_size - 1)
@@ -156,9 +154,6 @@ class Overboard:
                 j += direction
             if shifting_piece == self.turn:
                 break
-            # print(pieces)
-            # print("Overboard", shifting_piece)
-            # print()
             i += direction
             slides.append(
                 (
@@ -190,31 +185,4 @@ class Overboard:
                 [2, 2, 2, 2, 0, 1, 0, 1],
             ]
         )
-        board = np.array(
-            [
-                [0, 0, 0, 2, 0, 0, 0, 0],
-                [0, 0, 0, 2, 0, 0, 0, 0],
-                [0, 0, 0, 2, 0, 0, 0, 0],
-                [2, 2, 2, 1, 0, 0, 0, 0],
-                [0, 0, 0, 2, 0, 0, 0, 0],
-                [0, 0, 0, 2, 0, 0, 0, 0],
-                [0, 0, 0, 2, 0, 0, 0, 0],
-                [2, 2, 2, 2, 0, 0, 0, 0],
-            ]
-        )
         self.initialize(board, Overboard.PLAYER_WHITE)
-
-
-if __name__ == "__main__":
-    random.seed(1)
-
-    overboard = Overboard(board_size=4)
-    overboard.initialize_test_board()
-    print(overboard.get_winner())
-    # moves = overboard.get_moves((7, 7))
-    # for i, p, v in moves:
-    #     print(i, p, v)
-    # overboard.display_board()
-    # preview, valid = overboard.get_preview_board((7, 7), (7, 0))
-    # print(preview)
-    # print(valid)
