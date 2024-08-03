@@ -72,7 +72,7 @@ class Overboard:
 
         return None
 
-    def get_movable_piece_positions(self):
+    def get_player_piece_positions(self):
         assert self.initialized == True
 
         return list(zip(*np.where(self.board == self.turn)))
@@ -80,15 +80,15 @@ class Overboard:
     def get_moves(self):
         moves = []
 
-        pieces = self.get_movable_piece_positions()
+        pieces = self.get_player_piece_positions()
         for piece in pieces:
-            piece_moves = self.get_moves_for_piece(piece)
-            for move, _, _ in piece_moves:
-                moves.append((piece, move))
+            piece_moves = self.get_slides_for_piece(piece)
+            for move, preview, _ in piece_moves:
+                moves.append((piece, move, preview))
 
         return moves
 
-    def get_moves_for_piece(self, piece_position, valid_only=True):
+    def get_slides_for_piece(self, piece_position, valid_only=True):
         assert self.board[*piece_position] == self.turn
 
         pieces_row = self.board[piece_position[0], :]

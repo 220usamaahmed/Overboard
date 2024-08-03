@@ -16,7 +16,7 @@ for e in range(100):
     while (winner := overboard.get_winner()) is None: 
         t += 1
 
-        piece, move = random.choice(overboard.get_moves())
+        piece, move, preview = random.choice(overboard.get_moves())
         overboard.make_move(piece, move)
  
     average_game_length = average_game_length + (t - average_game_length) / (e + 1)
