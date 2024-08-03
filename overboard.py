@@ -73,7 +73,7 @@ class Overboard:
 
         return list(zip(*np.where(self.board == self.turn)))
 
-    def get_moves(self, piece_position):
+    def get_moves(self, piece_position, valid_only=True):
         assert self.board[*piece_position] == self.turn
 
         pieces_row = self.board[piece_position[0], :]
@@ -83,28 +83,28 @@ class Overboard:
             ((piece_position[0], i), preview, valid)
             for i, preview, valid in self.get_shifts(
                 pieces_row, piece_position[1], -1
-            )
+            ) if not valid_only or valid
         ]
 
         right_moves = [
             ((piece_position[0], i), preview, valid)
             for i, preview, valid in self.get_shifts(
                 pieces_row, piece_position[1], +1
-            )
+            ) if not valid_only or valid
         ]
 
         up_moves = [
             ((i, piece_position[1]), preview, valid)
             for i, preview, valid in self.get_shifts(
                 pieces_col, piece_position[0], -1
-            )
+            ) if not valid_only or valid
         ]
 
         down_moves = [
             ((i, piece_position[1]), preview, valid)
             for i, preview, valid in self.get_shifts(
                 pieces_col, piece_position[0], +1
-            )
+            ) if not valid_only or valid
         ]
 
         return left_moves + right_moves + up_moves + down_moves
