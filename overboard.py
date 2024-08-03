@@ -34,6 +34,21 @@ class Overboard:
             for c in range(self.board_size):
                 self.board[r, c] = pieces[r * self.board_size + c]
 
+    def initialize_test_board(self):
+        board = np.array(
+            [
+                [1, 0, 0, 2, 0, 2, 2, 2],
+                [0, 0, 0, 2, 0, 0, 0, 0],
+                [0, 0, 0, 2, 0, 0, 0, 0],
+                [2, 2, 2, 1, 2, 2, 2, 2],
+                [0, 0, 0, 2, 0, 0, 0, 0],
+                [0, 0, 0, 2, 0, 0, 0, 0],
+                [0, 0, 0, 2, 0, 0, 0, 0],
+                [2, 2, 2, 2, 0, 1, 0, 1],
+            ]
+        )
+        self.initialize(board, Overboard.PLAYER_WHITE)
+
     def initialize(self, board, turn):
         assert self.board.shape[0] == self.board.shape[1]
 
@@ -44,11 +59,6 @@ class Overboard:
         self.board_size = self.board.shape[0]
         self.turn = turn
 
-    def get_movable_piece_positions(self):
-        assert self.initialized == True
-
-        return list(zip(*np.where(self.board == self.turn)))
-
     def get_winner(self):
         if not np.any(self.board == self.PLAYER_RED):
             return self.PLAYER_WHITE
@@ -57,6 +67,11 @@ class Overboard:
             return self.PLAYER_RED
 
         return None
+
+    def get_movable_piece_positions(self):
+        assert self.initialized == True
+
+        return list(zip(*np.where(self.board == self.turn)))
 
     def get_moves(self, piece_position):
         assert self.board[*piece_position] == self.turn
@@ -67,28 +82,28 @@ class Overboard:
         left_moves = [
             ((piece_position[0], i), preview, valid)
             for i, preview, valid in self.get_shifts(
-                pieces_row.copy(), piece_position[1], -1
+                pieces_row, piece_position[1], -1
             )
         ]
 
         right_moves = [
             ((piece_position[0], i), preview, valid)
             for i, preview, valid in self.get_shifts(
-                pieces_row.copy(), piece_position[1], +1
+                pieces_row, piece_position[1], +1
             )
         ]
 
         up_moves = [
             ((i, piece_position[1]), preview, valid)
             for i, preview, valid in self.get_shifts(
-                pieces_col.copy(), piece_position[0], -1
+                pieces_col, piece_position[0], -1
             )
         ]
 
         down_moves = [
             ((i, piece_position[1]), preview, valid)
             for i, preview, valid in self.get_shifts(
-                pieces_col.copy(), piece_position[0], +1
+                pieces_col, piece_position[0], +1
             )
         ]
 
@@ -134,6 +149,8 @@ class Overboard:
         return preview_board, valid
 
     def get_shifts(self, pieces, start_index, direction, end_index=None):
+        pieces = pieces.copy()
+
         slides = []
         i = start_index
         while (
@@ -172,17 +189,3 @@ class Overboard:
         for r in range(self.board_size):
             print(" ".join(list(map(str, self.board[r]))))
 
-    def initialize_test_board(self):
-        board = np.array(
-            [
-                [1, 0, 0, 2, 0, 2, 2, 2],
-                [0, 0, 0, 2, 0, 0, 0, 0],
-                [0, 0, 0, 2, 0, 0, 0, 0],
-                [2, 2, 2, 1, 2, 2, 2, 2],
-                [0, 0, 0, 2, 0, 0, 0, 0],
-                [0, 0, 0, 2, 0, 0, 0, 0],
-                [0, 0, 0, 2, 0, 0, 0, 0],
-                [2, 2, 2, 2, 0, 1, 0, 1],
-            ]
-        )
-        self.initialize(board, Overboard.PLAYER_WHITE)
