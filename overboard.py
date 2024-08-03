@@ -8,6 +8,9 @@ class Overboard:
     PLAYER_RED = 2
 
     def __init__(self, board_size=8):
+        if board_size % 2 == 1:
+            raise Exception("Board size must be even")
+
         self.board_size = board_size
         self.reset()
 
@@ -50,7 +53,8 @@ class Overboard:
         self.initialize(board, Overboard.PLAYER_WHITE)
 
     def initialize(self, board, turn):
-        assert self.board.shape[0] == self.board.shape[1]
+        assert board.shape[0] % 2 == 0
+        assert board.shape[0] == board.shape[1]
 
         self.reset()
         self.initialized = True
@@ -73,7 +77,18 @@ class Overboard:
 
         return list(zip(*np.where(self.board == self.turn)))
 
-    def get_moves(self, piece_position, valid_only=True):
+    def get_moves(self):
+        moves = []
+
+        pieces = self.get_movable_piece_positions()
+        for piece in pieces:
+            piece_moves = self.get_moves_for_piece(piece)
+            for move, _, _ in piece_moves:
+                moves.append((piece, move))
+
+        return moves
+
+    def get_moves_for_piece(self, piece_position, valid_only=True):
         assert self.board[*piece_position] == self.turn
 
         pieces_row = self.board[piece_position[0], :]
