@@ -14,6 +14,15 @@ class Overboard:
         self.board_size = board_size
         self.reset()
 
+    @staticmethod
+    def from_numpy(board, turn=PLAYER_WHITE):
+        assert board.shape[0] % 2 == 0
+        assert board.shape[0] == board.shape[1]
+
+        overboard = Overboard(board_size=board.shape[0])
+        overboard.initialize(board, turn)
+        return overboard
+
     def reset(self):
         self.initialized = False
         self.board = np.array(
@@ -96,30 +105,26 @@ class Overboard:
 
         left_moves = [
             ((piece_position[0], i), preview, valid)
-            for i, preview, valid in self.get_shifts(
-                pieces_row, piece_position[1], -1
-            ) if not valid_only or valid
+            for i, preview, valid in self.get_shifts(pieces_row, piece_position[1], -1)
+            if not valid_only or valid
         ]
 
         right_moves = [
             ((piece_position[0], i), preview, valid)
-            for i, preview, valid in self.get_shifts(
-                pieces_row, piece_position[1], +1
-            ) if not valid_only or valid
+            for i, preview, valid in self.get_shifts(pieces_row, piece_position[1], +1)
+            if not valid_only or valid
         ]
 
         up_moves = [
             ((i, piece_position[1]), preview, valid)
-            for i, preview, valid in self.get_shifts(
-                pieces_col, piece_position[0], -1
-            ) if not valid_only or valid
+            for i, preview, valid in self.get_shifts(pieces_col, piece_position[0], -1)
+            if not valid_only or valid
         ]
 
         down_moves = [
             ((i, piece_position[1]), preview, valid)
-            for i, preview, valid in self.get_shifts(
-                pieces_col, piece_position[0], +1
-            ) if not valid_only or valid
+            for i, preview, valid in self.get_shifts(pieces_col, piece_position[0], +1)
+            if not valid_only or valid
         ]
 
         return left_moves + right_moves + up_moves + down_moves
@@ -203,4 +208,3 @@ class Overboard:
 
         for r in range(self.board_size):
             print(" ".join(list(map(str, self.board[r]))))
-
