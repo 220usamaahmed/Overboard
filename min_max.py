@@ -78,25 +78,29 @@ def min_max_move(overboard: Overboard):
         best_move_value = -1000
         best_move = None
 
-        # overboard.display_board()
-
         for piece, move, _ in overboard.get_moves():
             preview, _ = overboard.get_preview_board(piece, move)
             eval = min_max(
                 Overboard.from_numpy(preview, Overboard.PLAYER_RED), False, 2
             )
 
-            # print(piece, move)
-            # print(preview)
-            # print(eval)
-
             if eval > best_move_value:
                 best_move_value = eval
                 best_move = (piece, move)
 
-        # print("------------")
     else:
-        raise Exception("Not implemented")
+        best_move_value = 1000
+        best_move = None
+
+        for piece, move, _ in overboard.get_moves():
+            preview, _ = overboard.get_preview_board(piece, move)
+            eval = min_max(
+                Overboard.from_numpy(preview, Overboard.PLAYER_WHITE), True, 2
+            )
+
+            if eval < best_move_value:
+                best_move_value = eval
+                best_move = (piece, move)
 
     return best_move
 
@@ -158,6 +162,10 @@ if __name__ == "__main__":
     # play_tournament(min_max_move, random_move)
     # print()
 
-    print("WHITE: MinMax - Red: Greedy")
-    play_tournament(min_max_move, greedy_move)
+    # print("WHITE: Greedy - Red: MinMax")
+    # play_tournament(greedy_move, min_max_move)
+    # print()
+
+    print("WHITE: MinMax - Red: MinMax")
+    play_tournament(min_max_move, min_max_move)
     print()
