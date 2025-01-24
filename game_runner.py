@@ -138,17 +138,21 @@ class GameRunner:
             (terminal_rows - board_height) // 2 - 2,
             starting_x,
             f" {white}{' ' * (board_width - len(white) - 1)}",
-            turn_color
-            if self.overboard.turn == Overboard.PLAYER_WHITE
-            else non_turn_color,
+            (
+                turn_color
+                if self.overboard.turn == Overboard.PLAYER_WHITE
+                else non_turn_color
+            ),
         )
         stdscr.addstr(
             (terminal_rows - board_height) // 2 + board_height + 1,
             starting_x,
             f" {red}{' ' * (board_width - len(red) - 1)}",
-            turn_color
-            if self.overboard.turn == Overboard.PLAYER_RED
-            else non_turn_color,
+            (
+                turn_color
+                if self.overboard.turn == Overboard.PLAYER_RED
+                else non_turn_color
+            ),
         )
 
     def display_white_wins(self, stdscr):
@@ -294,7 +298,7 @@ def setup_curses_colors():
 def game_loop(stdscr):
     setup_curses_colors()
 
-    game_runner = GameRunner()
+    game_runner = GameRunner(8)
 
     stdscr.nodelay(False)
     curses.curs_set(0)

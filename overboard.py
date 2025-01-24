@@ -2,21 +2,25 @@ import numpy as np
 import random
 
 
+class InvalidMove(Exception):
+    pass
+
+
+class InvalidBoard(Exception):
+    pass
+
+
 class Overboard:
     EMPTY = 0
     PLAYER_WHITE = 1
     PLAYER_RED = 2
 
     def __init__(self, board_size=8):
-        if board_size % 2 == 1:
-            raise Exception("Board size must be even")
-
         self.board_size = board_size
         self.reset()
 
     @staticmethod
     def from_numpy(board, turn=PLAYER_WHITE):
-        assert board.shape[0] % 2 == 0
         assert board.shape[0] == board.shape[1]
 
         overboard = Overboard(board_size=board.shape[0])

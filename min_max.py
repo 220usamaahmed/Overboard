@@ -1,6 +1,7 @@
 import random
 import numpy as np
 from tqdm import tqdm
+import timeit
 from overboard import Overboard
 
 SIZE = 4
@@ -143,29 +144,21 @@ def min_max(overboard: Overboard, maximizing_player, depth=3):
         return min_eval
 
 
-if __name__ == "__main__":
+def run_experiments():
     random.seed(12)
 
-    # print("WHITE: Random - Red: Random")
-    # play_tournament(random_move, random_move)
-    # print()
-    #
-    # print("WHITE: Greedy - Red: Random")
-    # play_tournament(greedy_move, random_move)
-    # print()
-    #
-    # print("WHITE: Greedy - Red: Greedy")
-    # play_tournament(greedy_move, greedy_move)
-    # print()
+    agents = {
+        "random_move": random_move,
+        "greedy_move": greedy_move,
+        "min_max_move": min_max_move,
+    }
 
-    # print("WHITE: MinMax - Red: Random")
-    # play_tournament(min_max_move, random_move)
-    # print()
+    for name_w, function_w in agents.items():
+        for name_r, function_r in agents.items():
+            print(f"White: {name_w} - Red: {name_r}")
+            play_tournament(function_w, function_r)
 
-    # print("WHITE: Greedy - Red: MinMax")
-    # play_tournament(greedy_move, min_max_move)
-    # print()
 
-    print("WHITE: MinMax - Red: MinMax")
-    play_tournament(min_max_move, min_max_move)
-    print()
+if __name__ == "__main__":
+    execution_time = timeit.timeit(run_experiments, number=10)
+    print(f"Average time per run: {execution_time / 10:.6f} seconds")
