@@ -2,6 +2,8 @@
 
 A TUI implementation of the Overboard boardgame. The goal with this project is to train a agent to play this game. So far it only has a min-max solver.
 
+![Screenshot of game](./images/overboard.png)
+
 ## Game rules
 
 - Two players start the game by picking their color (white or red).
@@ -11,3 +13,9 @@ A TUI implementation of the Overboard boardgame. The goal with this project is t
 - If your move does not push over any pieces then you can only move one unit.
 
 # Controls
+
+- ``Arrow keys`` to move to select
+- ``Spacebar`` to select piece
+- ``Arrow keys`` to move piece
+- ``Enter`` to make move
+- ``q`` to quit
